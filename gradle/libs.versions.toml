@@ -1,0 +1,32 @@
+[versions]
+kotlin = "2.2.20"
+kotlinxDatetime = "0.6.2"
+kotlinxSerializationJSON = "1.8.1"
+kotlinxCoroutines = "1.10.2"
+ktor = "2.3.12"
+
+[libraries]
+kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
+kotlinxSerialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJSON" }
+kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version = "2.0.12" }
+
+[bundles]
+kotlinxEcosystem = ["kotlinxDatetime", "kotlinxSerialization", "kotlinxCoroutines"]
+ktorServer = [
+    "ktor-server-core",
+    "ktor-server-netty",
+    "ktor-server-content-negotiation",
+    "ktor-serialization-json",
+    "ktor-server-call-logging"
+]
+
+[plugins]
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

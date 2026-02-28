@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.example.utils.PrinterTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-02-27T10:34:41.028Z" hostname="WIN-5OBSSBSNNUS" time="0.042">
+  <properties/>
+  <testcase name="testSerialization()" classname="org.example.utils.PrinterTest" time="0.039"/>
+  <testcase name="testMessage()" classname="org.example.utils.PrinterTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
