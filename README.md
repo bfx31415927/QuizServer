@@ -48,3 +48,19 @@ and both a build cache and a configuration cache (see `gradle.properties`).
        а в Postman должны увидеть: {"processedText":"Received: MY TEXT", "status":"success"}
        
 
+01.03.26
+---------
+1) Добавил webSocket
+см. изменения в libs.versions.toml
+ВАЖНО: в коде:
+format { call ->
+val remoteAddress = call.request.origin.remoteAddress
+val method = call.request.httpMethod.value
+val uri = call.request.uri
+val userAgent = call.request.headers["User-Agent"] ?: "Unknown"
+"REMOTE: $remoteAddress | $method $uri | User-Agent: $userAgent"
+}
+remoteAddress вместо первоначального remoteHost (что вызывала непонятные задержки)
+2) На скорую руку был написан файл d:\t\index.html - для соединения и 
+посылки команды в WebSocket (файл запускается через браузер)
+

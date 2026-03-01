@@ -1,16 +1,27 @@
-# Compiled class file
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Gradle
+.gradle/
+build/
+gradle-app.setting
+!gradle-wrapper.jar
+
+# Kotlin
+.kotlin_module
+.kotlin_metadata
+
+# Java
 *.class
-
-# Log file
 *.log
+hs_err_pid*
+replay_pid*
 
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
+# Package Files
 *.jar
 *.war
 *.nar
@@ -18,10 +29,102 @@
 *.zip
 *.tar.gz
 *.rar
+*.bin
+*.lock
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
 
-# Kotlin Gradle plugin data, see https://kotlinlang.org/docs/whatsnew20.html#new-directory-for-kotlin-data-in-gradle-projects
+# BlueJ files
+*.ctxt
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node.js (если используется в проекте)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local configuration files
+*.properties
+*.yml
+*.yaml
+!application.yml
+!application.yaml
+
+# Test output
+test-output/
+.coverage/
+
+# Build reports
+reports/
+test-results/
+
+# IDE specific
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+
+# Docker
+Dockerfile.local
+docker-compose.override.yml
+
+# Secrets and credentials
+*.key
+*.pem
+*.crt
+*.pfx
+*.jks
+*.keystore
+credentials.*
+config.secret.*
+
+# Cache directories
+.cache/
+.npm/
+.yarn-cache/
+
+# macOS
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+$RECYCLE.BIN/
+System Volume Information/
+ehthumbs.db
+
+# Linux
+.directory
+.nfs*
+
+# Version control
+.git/
+.svn/
+
+# Kotlin Gradle plugin data
 .kotlin/
+
+# Additional Kotlin/Gradle specific
+.kts.backup
+.classpath
+.project
+.settings/
+.factorypath
+.vscode/
+.fleet/
+
+# Dependency lock files (если не нужно версионировать)
+gradle.lockfile
+
+# Generated documentation
+docs/_build/
+apidocs/
