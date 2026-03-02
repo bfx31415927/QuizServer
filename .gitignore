@@ -128,3 +128,13 @@ gradle.lockfile
 # Generated documentation
 docs/_build/
 apidocs/
+
+# Игнорируем все .properties
+*.properties
+
+# Но сохраняем важные конфигурационные файлы
+!application.properties
+!config.properties
+
+# Игнорируем все .probe
+*.probe
