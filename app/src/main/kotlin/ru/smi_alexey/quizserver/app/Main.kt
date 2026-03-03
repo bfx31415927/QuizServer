@@ -1,6 +1,5 @@
 package ru.smi_alexey.quizserver.app
 
-import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -18,7 +17,7 @@ import java.time.Duration
 
 fun main() {
 
-    val StartTime = AttributeKey<Long>("StartTime")
+//    val StartTime = AttributeKey<Long>("StartTime")
 
     embeddedServer(Netty, port = serverPort, host = "0.0.0.0") {
 
@@ -32,17 +31,13 @@ fun main() {
         install(CallLogging) {
             level = Level.INFO
 //            format { call ->
-//                val remoteAddress = call.request.origin.remoteAddress
 //                val method = call.request.httpMethod.value
 //                val uri = call.request.uri
-//                val userAgent = call.request.headers["User-Agent"] ?: "Unknown"
-//                val status = call.response.status() ?: HttpStatusCode.OK
+//                val status = call.response.status()?.value ?: "Unknown"
+//                val start = call.attributes.getOrNull(StartTime) ?: System.currentTimeMillis()
+//                val elapsed = System.currentTimeMillis() - start
 //
-//                // Получаем время начала из атрибутов
-//                val startTime = call.attributes[StartTime]
-//                val time = System.currentTimeMillis() - startTime
-//
-//                "REMOTE: $remoteAddress | $method $uri | $status | User-Agent: $userAgent | in ${time}ms"
+//                "[HANDSHAKE_LOG] $method $uri → $status in ${elapsed}ms"
 //            }
         }
 
@@ -56,7 +51,7 @@ fun main() {
         routing {
             webSocket("/ws") {
                 val logger = application.environment.log
-                val clientAddress = call.request.origin.remoteHost
+                val clientAddress = call.request.origin.remoteAddress
                 try {
                     send(Frame.Text("Connected to WebSocket!"))
                     logger.info("WebSocket connected: $clientAddress")
