@@ -1,4 +1,4 @@
-package org.example.app
+package ru.smi_alexey.quizserver.app
 
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -9,40 +9,43 @@ import io.ktor.server.plugins.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
+import io.ktor.util.*
 import io.ktor.websocket.*
-import kotlinx.serialization.Serializable
 import org.slf4j.event.Level
 import java.time.Duration
 
-@Serializable
-data class Message(val text: String)
-
-@Serializable
-data class PostRequest(val userInput: String)
-
-@Serializable
-data class PostResponse(val processedText: String, val status: String)
-
 fun main() {
 
-    embeddedServer(Netty, port = 16999, host = "0.0.0.0") {
+    val StartTime = AttributeKey<Long>("StartTime")
+
+    embeddedServer(Netty, port = serverPort, host = "0.0.0.0") {
+
+//        intercept(ApplicationCallPipeline.Monitoring) {
+//            call.attributes.put(StartTime, System.currentTimeMillis())
+//        }
+
         install(ContentNegotiation) {
             json()
         }
         install(CallLogging) {
             level = Level.INFO
-            format { call ->
-                val remoteAddress = call.request.origin.remoteAddress
-                val method = call.request.httpMethod.value
-                val uri = call.request.uri
-                val userAgent = call.request.headers["User-Agent"] ?: "Unknown"
-                "REMOTE: $remoteAddress | $method $uri | User-Agent: $userAgent"
-            }
+//            format { call ->
+//                val remoteAddress = call.request.origin.remoteAddress
+//                val method = call.request.httpMethod.value
+//                val uri = call.request.uri
+//                val userAgent = call.request.headers["User-Agent"] ?: "Unknown"
+//                val status = call.response.status() ?: HttpStatusCode.OK
+//
+//                // Получаем время начала из атрибутов
+//                val startTime = call.attributes[StartTime]
+//                val time = System.currentTimeMillis() - startTime
+//
+//                "REMOTE: $remoteAddress | $method $uri | $status | User-Agent: $userAgent | in ${time}ms"
+//            }
         }
-        // Установка поддержки WebSocket
+
         install(WebSockets) {
             pingPeriod = Duration.ofSeconds(15)
             timeout = Duration.ofMinutes(1)
@@ -51,32 +54,9 @@ fun main() {
         }
 
         routing {
-            get("/") {
-                call.respond(Message("Hello from Ktor!"))
-            }
-            get("/ping") {
-                call.respond(mapOf("status" to "ok", "message" to "Pong!"))
-            }
-            post("/post") {
-                try {
-                    val request = call.receive<PostRequest>()
-                    val response = PostResponse(
-                        processedText = "Received: ${request.userInput.uppercase()}",
-                        status = "success"
-                    )
-                    call.respond(response)
-                } catch (e: Exception) {
-                    call.respondText("Error: ${e.message}", status = HttpStatusCode.BadRequest)
-                }
-            }
-
-            // Новый маршрут — WebSocket
-            webSocket("/ws") { // ws://localhost:16999/ws
+            webSocket("/ws") {
                 val logger = application.environment.log
                 val clientAddress = call.request.origin.remoteHost
-
-                logger.info("WebSocket connecting: $clientAddress")
-
                 try {
                     send(Frame.Text("Connected to WebSocket!"))
                     logger.info("WebSocket connected: $clientAddress")

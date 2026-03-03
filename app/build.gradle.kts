@@ -9,7 +9,12 @@ dependencies {
 
     implementation(libs.bundles.ktorServer)
     implementation(libs.kotlinxSerialization)
-    implementation(libs.slf4j.simple)
+
+    // Удаляем slf4j-simple — он блокирует logback
+    // implementation(libs.slf4j.simple)
+
+    // Подключаем logback-classic через libs.versions.toml
+    implementation(libs.logback.classic)
 }
 
 application {
