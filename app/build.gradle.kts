@@ -4,19 +4,24 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     implementation(project(":utils"))
 
     implementation(libs.bundles.ktorServer)
     implementation(libs.kotlinxSerialization)
 
-    // Удаляем slf4j-simple — он блокирует logback
-    // implementation(libs.slf4j.simple)
+    // Зависимости для PostgreSQL (Exposed + драйвер + пул соединений)
+    implementation(libs.bundles.database)
 
-    // Подключаем logback-classic через libs.versions.toml
+    // Логирование через Logback
     implementation(libs.logback.classic)
+    implementation(libs.flyway.core)
 }
 
 application {
-    mainClass.set("org.example.app.MainKt")
+    mainClass.set("ru.smi_alexey.quizserver.app.MainKt")
 }

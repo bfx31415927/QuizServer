@@ -1,5 +1,7 @@
 package ru.smi_alexey.quizserver.app
 
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -7,15 +9,81 @@ import io.ktor.server.netty.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
-import io.ktor.util.*
 import io.ktor.websocket.*
+import org.flywaydb.core.Flyway
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.event.Level
 import java.time.Duration
 
+
+object MigrationUtils {
+    private fun createDataSource() = HikariDataSource(HikariConfig().apply {
+        jdbcUrl = "jdbc:postgresql://localhost:5432/quiz_db"
+        username = "quiz_user"
+        password = "31415926"
+        driverClassName = "org.postgresql.Driver"
+    })
+
+    fun runMigrations() {
+        println("🔧 Создаём DataSource...")
+        val dataSource = createDataSource()
+        println("✅ DataSource создан")
+
+        // Подключаем Exposed — чтобы потом работал transaction
+        Database.connect(dataSource)
+        println("✅ Exposed подключён к DataSource")
+
+        println("🚀 Настраиваем Flyway...")
+        val flyway = Flyway.configure()
+            .dataSource(dataSource)
+            .locations("classpath:db/migration")
+//            .validateOnMigrate(false)
+//            .baselineOnMigrate(true)
+            .load()
+        println("✅ Flyway настроен")
+
+        println("🔍 Запускаем миграции...")
+        flyway.migrate()
+
+//        dataSource.close() // Не закрывать, если будет использоваться дальше
+    }
+}
+
+
+fun testConnection() {
+    transaction {
+        println("Успешное подключение к БД!")
+        exec("SELECT version() as ver") { rs ->
+            if (rs.next()) {
+                println("Версия PostgreSQL: ${rs.getString("ver")}")
+            }
+        }
+    }
+}
+
 fun main() {
+    println("🟢 Запуск main()")
+    // 🔎 Печатаем версию Flyway
+    val flywayVersion = Flyway::class.java.`package`.implementationVersion
+    println("📦 Flyway version: ${flywayVersion ?: "unknown (class not found)"}")
+
+
+    try {
+        MigrationUtils.runMigrations()
+        println("🎉 Миграции успешно применены")
+    } catch (t: Throwable) {  // ← важно: не Exception, а Throwable
+        println("❌ Тип ошибки: ${t.javaClass}")
+        println("📝 Сообщение: ${t.message}")
+        println("📊 Стектрейс:")
+        t.printStackTrace()
+    }
+
+
+
+    testConnection()
 
 //    val StartTime = AttributeKey<Long>("StartTime")
 
