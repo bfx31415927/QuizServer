@@ -6,5 +6,4 @@ CREATE TABLE IF NOT EXISTS gamers (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_gamers_id ON gamers(id);
 CREATE INDEX IF NOT EXISTS idx_gamers_login ON gamers(login);

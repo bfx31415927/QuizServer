@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.bundles.database)
 
     // Логирование через Logback
+    implementation(libs.slf4j.api)      // Добавляем явно
     implementation(libs.logback.classic)
     implementation(libs.flyway.core)
 }
