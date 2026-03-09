@@ -10,6 +10,7 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import org.slf4j.event.Level
 import ru.smi_alexey.db.testConnection
+import ru.smi_alexey.log.AppLogger
 import ru.smi_alexey.quizserver.app.serverPort
 import java.time.Duration
 
@@ -45,17 +46,17 @@ fun startEmbeddedServer() {
                     for (frame in incoming) {
                         if (frame is Frame.Text) {
                             val text = frame.readText()
-                            `AppLogger.kt`.info("WebSocket received from $clientAddress: '$text'")
+                            AppLogger.info("WebSocket received from $clientAddress: '$text'")
                             val responseText = "Echo (uppercase): ${text.uppercase()}"
                             send(Frame.Text(responseText))
-                            `AppLogger.kt`.info("WebSocket sent to $clientAddress: '$responseText'")
+                            AppLogger.info("WebSocket sent to $clientAddress: '$responseText'")
                         }
                     }
                 } catch (e: Exception) {
-                    `AppLogger.kt`.error("WebSocket error with $clientAddress", e)
+                    AppLogger.error("WebSocket error with $clientAddress", e)
                     close(CloseReason(CloseReason.Codes.INTERNAL_ERROR, "Error"))
                 } finally {
-                    `AppLogger.kt`.error("WebSocket disconnected: $clientAddress")
+                    AppLogger.error("WebSocket disconnected: $clientAddress")
                 }
             }
         }

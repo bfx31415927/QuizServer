@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
+import ru.smi_alexey.log.AppLogger
 import ru.smi_alexey.quizserver.app.dbUrl
 import ru.smi_alexey.quizserver.app.dbUser
 import ru.smi_alexey.quizserver.app.dbUserPassword
@@ -25,7 +26,7 @@ object MigrationUtils {
         Database.connect(dataSource)
 //        AppLogger.info("✅ Exposed подключён к DataSource")
 
-        `AppLogger.kt`.info("🚀 Настраиваем Flyway...")
+        AppLogger.info("🚀 Настраиваем Flyway...")
         val flyway = Flyway.configure()
             .dataSource(dataSource)
             .locations("classpath:db/migration")
@@ -35,7 +36,7 @@ object MigrationUtils {
 //        AppLogger.info("✅ Flyway настроен")
 
         // Запускаем миграции...
-        `AppLogger.kt`.info("🔍 Запускаем миграции...")
+        AppLogger.info("🔍 Запускаем миграции...")
         flyway.migrate()
 
 //        dataSource.close() // Не закрывать, если будет использоваться дальше
@@ -45,12 +46,12 @@ object MigrationUtils {
 fun runMigrations() {
     try {
         MigrationUtils.runMigrations()
-        `AppLogger.kt`.info("🎉 Миграции успешно применены")
+        AppLogger.info("🎉 Миграции успешно применены")
     } catch (t: Throwable) {
-        `AppLogger.kt`.info("🎉 C миграциями проблемы")
-        `AppLogger.kt`.info("❌ Тип ошибки: ${t.javaClass}")
-        `AppLogger.kt`.info("📝 Сообщение: ${t.message}")
-        `AppLogger.kt`.info("📊 Стектрейс:")
+        AppLogger.info("🎉 C миграциями проблемы")
+        AppLogger.info("❌ Тип ошибки: ${t.javaClass}")
+        AppLogger.info("📝 Сообщение: ${t.message}")
+        AppLogger.info("📊 Стектрейс:")
         t.printStackTrace()
     }
 }
