@@ -3,7 +3,7 @@ package ru.smi_alexey.log
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-object AppLogger {
+object log {
     private val logger: Logger = LoggerFactory.getLogger("GlobalAppLogger")
 
     fun debug(msg: String) = logger.debug(msg)
