@@ -13,11 +13,19 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.Json.Default.decodeFromString
 import kotlinx.serialization.json.Json.Default.serializersModule
 import org.slf4j.event.Level
 import ru.smi_alexey.db.testConnection
+import ru.smi_alexey.handle_client_message.handleMessageWrapper
+import ru.smi_alexey.handle_client_message.handleWebSocketMessage
 import ru.smi_alexey.log.log
 import ru.smi_alexey.quizserver.app.serverPort
+import ru.smi_alexey.serialization.MessageType
+import ru.smi_alexey.serialization.MessageWrapper
+import ru.smi_alexey.serialization.WebSocketMessage
+import ru.smi_alexey.serialization.analyzeMessageType
+import ru.smi_alexey.serialization.json
 import ru.smi_alexey.serialization.webSocketSerializersModule
 import java.io.IOException
 import java.time.Duration
@@ -39,19 +47,7 @@ fun startEmbeddedServer() {
             timeout = Duration.ofMinutes(1)
             maxFrameSize = Long.MAX_VALUE
             masking = false
-            contentConverter = KotlinxWebsocketSerializationConverter(
-                Json {
-                    /*
-                        при установке ignoreUnknownKeys = true
-                        библиотека игнорирует поля из JSON‑ответа,
-                        для которых нет соответствующих свойств в Kotlin‑классе.
-                        Без этой настройки (по умолчанию false) при обнаружении
-                        неизвестного поля будет выброшено исключение JsonDecodingException
-                     */
-                    ignoreUnknownKeys = true
-                    serializersModule = webSocketSerializersModule  // Используем готовый модуль
-                }
-            )
+            contentConverter = KotlinxWebsocketSerializationConverter(json)
         }
 
         routing {
@@ -66,7 +62,29 @@ fun startEmbeddedServer() {
                         if (frame is Frame.Text) {
                             val jsonString = frame.readText()
                             log.debug("Получен JSON: $jsonString")
+                            try {
+                                // Анализируем начало строки и структуру JSON
+                                val messageType = analyzeMessageType(jsonString)
+                                when (messageType) {
+                                    MessageType.DIRECT -> {
+                                        // Прямой экземпляр sealed-класса
+                                        val message = json.decodeFromString(WebSocketMessage.serializer(),
+                                            jsonString)
+                                        handleWebSocketMessage(this, message)
+                                    }
+                                    MessageType.WRAPPED -> {
+                                        // Сообщение в обёртке
+                                        val wrapper = json.decodeFromString<MessageWrapper>(jsonString)
+                                        handleMessageWrapper(this, wrapper)
+                                    }
 
+
+
+
+                                }
+
+
+                            }
 
 
 
