@@ -94,4 +94,5 @@ val json = Json {
     ignoreUnknownKeys = true
     isLenient = true
     serializersModule = webSocketSerializersModule
+    classDiscriminator = "_type" // или любое другое имя, не совпадающее с полем в классе
 }

@@ -23,6 +23,7 @@ import ru.smi_alexey.log.log
 import ru.smi_alexey.quizserver.app.serverPort
 import ru.smi_alexey.serialization.MessageType
 import ru.smi_alexey.serialization.MessageWrapper
+import ru.smi_alexey.serialization.ServerResponse
 import ru.smi_alexey.serialization.WebSocketMessage
 import ru.smi_alexey.serialization.analyzeMessageType
 import ru.smi_alexey.serialization.json
@@ -60,43 +61,43 @@ fun startEmbeddedServer() {
                     send(Frame.Text("You are connected to WebSocket!"))
                     for (frame in incoming) {
                         if (frame is Frame.Text) {
-                            val jsonString = frame.readText()
-                            log.debug("Получен JSON: $jsonString")
-                            try {
-                                // Анализируем начало строки и структуру JSON
-                                val messageType = analyzeMessageType(jsonString)
-                                when (messageType) {
-                                    MessageType.DIRECT -> {
-                                        // Прямой экземпляр sealed-класса
-                                        val message = json.decodeFromString(WebSocketMessage.serializer(),
-                                            jsonString)
-                                        handleWebSocketMessage(this, message)
-                                    }
-                                    MessageType.WRAPPED -> {
-                                        // Сообщение в обёртке
-                                        val wrapper = json.decodeFromString<MessageWrapper>(jsonString)
-                                        handleMessageWrapper(this, wrapper)
-                                    }
-
-
-
-
-                                }
-
-
-                            }
-
-
-
-
-
-
-
-
-
-
-
-
+//                            val jsonString = frame.readText()
+//                            log.debug("Получен JSON: $jsonString")
+//                            try {
+//                                // Анализируем начало строки и структуру JSON
+//                                val messageType = analyzeMessageType(jsonString)
+//                                when (messageType) {
+//                                    MessageType.DIRECT -> {
+//                                        // Прямой экземпляр sealed-класса
+//                                        val message = json.decodeFromString(
+//                                            WebSocketMessage.serializer(),
+//                                            jsonString
+//                                        )
+//                                        handleWebSocketMessage(this, message)
+//                                    }
+//
+//                                    MessageType.WRAPPED -> {
+//                                        // Сообщение в обёртке
+//                                        val wrapper = json.decodeFromString<MessageWrapper>(jsonString)
+//                                        handleMessageWrapper(this, wrapper)
+//                                    }
+//
+//                                    MessageType.UNKNOWN -> {
+//                                        log.warn("Неизвестный формат сообщения: $jsonString")
+//                                        val errorResponse = ServerResponse(false, "Неподдерживаемый формат сообщения")
+//                                        val frame = Frame.Text(json.encodeToString(errorResponse))
+//                                        send(frame)
+//                                    }
+//                                }
+//                            } catch (e: Exception) {
+//                                log.error("Ошибка обработки сообщения: $jsonString", e)
+//                                val errorResponse = ServerResponse(false, "Ошибка обработки сообщения")
+//                                val frame = Frame.Text(json.encodeToString(errorResponse))
+//                                send(frame)
+//                            }
+//                        } else {
+//                                log.warn("Получен фрейм неподдерживаемого типа: ${frame::class.simpleName}")
+//                        }
                             val text = frame.readText()
                             log.info("WebSocket received from $clientAddress: '$text'")
                             val responseText = "Echo (uppercase): ${text.uppercase()}"
@@ -104,7 +105,9 @@ fun startEmbeddedServer() {
                             log.info("WebSocket sent to $clientAddress: '$responseText'")
                         }
                     }
+
                     log.info("Цикл 'for' завершён нормально: канал закрыт")
+
                 } catch (e: ClosedReceiveChannelException) {
                     exceptionCode = 1
                     log.info("Цикл 'for' прерван: явное закрытие канала (ClosedReceiveChannelException)")
