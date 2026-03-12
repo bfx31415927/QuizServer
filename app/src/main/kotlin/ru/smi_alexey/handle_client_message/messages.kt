@@ -46,27 +46,27 @@ suspend fun handleMessageWrapper(
 ) {
     when (wrapper.wr_type) {
         "text" -> {
-            val message = json.decodeFromJsonElement<TextMessage>(TextMessage.serializer(),
+            val message = json.decodeFromJsonElement(TextMessage.serializer(),
                 wrapper.data)
-            log.info("Получено текстовое сообщение (в обёртке): ${message.content}")
+//            log.info("Получено текстовое сообщение (в обёртке): ${message.content}")
+            log.info("Получено текстовое сообщение (в обёртке): $message")
             val response = ServerResponse(true, "Сообщение получено (обёртка): ${message.content}")
             // Преобразуем ServerResponse в JSON-строку и оборачиваем в Frame.Text
             val frame = Frame.Text(json.encodeToString(response))
             session.send(frame)
         }
         "command" -> {
-            val command = json.decodeFromJsonElement<CommandMessage>(CommandMessage.serializer(),
+            val command = json.decodeFromJsonElement(CommandMessage.serializer(),
                 wrapper.data)
-            log.info("Получена команда (в обёртке): ${command.command}")
-            // processCommand уже возвращает ServerResponse — используем напрямую
+            log.info("Получена команда (в обёртке): $command")
             val response = processCommand(command)
             val frame = Frame.Text(json.encodeToString(response))
             session.send(frame)
         }
         "status" -> {
-            val statusUpdate = json.decodeFromJsonElement<StatusUpdate>(StatusUpdate.serializer(),
+            val statusUpdate = json.decodeFromJsonElement(StatusUpdate.serializer(),
                 wrapper.data)
-            log.info("Статус пользователя обновлен (в обёртке): ${statusUpdate.status}")
+            log.info("Статус пользователя обновлен (в обёртке): $statusUpdate")
             updateUserStatus(statusUpdate.userId ?: "unknown", statusUpdate.status)
             val response = ServerResponse(true, "Статус обновлен (обёртка)")
             val frame = Frame.Text(json.encodeToString(response))
