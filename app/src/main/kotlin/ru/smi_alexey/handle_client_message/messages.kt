@@ -90,5 +90,5 @@ private fun processCommand(command: CommandMessage): ServerResponse {
 }
 
 private fun updateUserStatus(userId: String, status: String) {
-    println("У пользователя $userId теперь статус: '$status'")
+    log.info("У пользователя $userId теперь статус: '$status'")
 }

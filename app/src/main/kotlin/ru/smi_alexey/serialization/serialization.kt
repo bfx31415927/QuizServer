@@ -10,12 +10,12 @@ import kotlinx.serialization.modules.subclass
 
 @Serializable
 sealed class WebSocketMessage {
-    abstract val type: String
+    abstract val _type: String
 }
 
 @Serializable
 data class TextMessage(
-    override val type: String = "text",
+    override val _type: String = "text",
     val content: String,
     val timestamp: Long = System.currentTimeMillis(),
     val userId: String? = null
@@ -23,7 +23,7 @@ data class TextMessage(
 
 @Serializable
 data class CommandMessage(
-    override val type: String = "command",
+    override val _type: String = "command",
     val command: String,
     val params: Map<String, String> = emptyMap(),
     val target: String? = null
@@ -31,7 +31,7 @@ data class CommandMessage(
 
 @Serializable
 data class StatusUpdate(
-    override val type: String = "status",
+    override val _type: String = "status",
     val status: String,
     val lastActivity: Long = System.currentTimeMillis(),
     val userId: String? = null
@@ -94,5 +94,5 @@ val json = Json {
     ignoreUnknownKeys = true
     isLenient = true
     serializersModule = webSocketSerializersModule
-    classDiscriminator = "_type" // или любое другое имя, не совпадающее с полем в классе
+//    classDiscriminator = "_type" // или любое другое имя, не совпадающее с полем в классе
 }
