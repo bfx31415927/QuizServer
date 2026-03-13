@@ -17,8 +17,9 @@ import kotlinx.serialization.json.Json.Default.decodeFromString
 import kotlinx.serialization.json.Json.Default.serializersModule
 import org.slf4j.event.Level
 import ru.smi_alexey.db.testConnection
-import ru.smi_alexey.handle_client_message.handleMessageWrapper
+import ru.smi_alexey.handle_client_message.handleWrapperMessage
 import ru.smi_alexey.handle_client_message.handleWebSocketMessage
+import ru.smi_alexey.handle_client_message.sendWrapperMessage
 import ru.smi_alexey.log.log
 import ru.smi_alexey.quizserver.app.serverPort
 import ru.smi_alexey.serialization.MessageType
@@ -64,7 +65,6 @@ fun startEmbeddedServer() {
                             val jsonString = frame.readText()
                             log.debug("Получен JSON: $jsonString")
                             try {
-                                // Анализируем начало строки и структуру JSON
                                 val messageType = analyzeMessageType(jsonString)
                                 when (messageType) {
                                     MessageType.DIRECT -> {
@@ -79,31 +79,28 @@ fun startEmbeddedServer() {
                                     MessageType.WRAPPED -> {
                                         // Сообщение в обёртке
                                         val wrapper = json.decodeFromString<MessageWrapper>(jsonString)
-                                        handleMessageWrapper(this, wrapper)
+                                        handleWrapperMessage(this, wrapper)
                                     }
 
                                     MessageType.UNKNOWN -> {
-                                        log.warn("Неизвестный формат сообщения: $jsonString")
-                                        val errorResponse = ServerResponse(false, "Неподдерживаемый формат сообщения")
-                                        val frame = Frame.Text(json.encodeToString(errorResponse))
-                                        send(frame)
+                                        val mess = "Получено сообщения неподдерживаемого формата: $jsonString"
+                                        log.error(mess)
+                                        sendWrapperMessage(this,
+                                            ServerResponse( success = false, message = mess))
                                     }
                                 }
                             } catch (e: Exception) {
-                                log.error("Ошибка обработки сообщения: $jsonString", e)
-                                val errorResponse = ServerResponse(false, "Ошибка обработки сообщения")
-                                val frame = Frame.Text(json.encodeToString(errorResponse))
-                                send(frame)
+                                val mess = "Ошибка обработки сообщения: $jsonString"
+                                log.error(mess, e)
+                                sendWrapperMessage(this,
+                                    ServerResponse(success = false, message = mess))
                             }
                         } else {
-                                log.warn("Получен фрейм неподдерживаемого типа: ${frame::class.simpleName}")
+                            val mess = "Получен фрейм неподдерживаемого типа: ${frame::class.simpleName}"
+                            log.warn(mess)
+                            sendWrapperMessage(this,
+                                ServerResponse( success = false, message = mess))
                         }
-//                            val text = frame.readText()
-//                            log.info("WebSocket received from $clientAddress: '$text'")
-//                            val responseText = "Echo (uppercase): ${text.uppercase()}"
-//                            send(Frame.Text(responseText))
-//                            log.info("WebSocket sent to $clientAddress: '$responseText'")
-//                        }
                     }
 
                     log.info("Цикл 'for' завершён нормально: канал закрыт")

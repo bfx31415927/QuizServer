@@ -39,10 +39,19 @@ data class StatusUpdate(
 
 @Serializable
 data class ServerResponse(
+    override val _type: String = "server_response",
     val success: Boolean,
     val message: String,
     val processedAt: Long = System.currentTimeMillis()
-)
+) : WebSocketMessage()
+
+@Serializable
+data class ClientResponse(
+    override val _type: String = "client_response",
+    val success: Boolean,
+    val message: String,
+    val processedAt: Long = System.currentTimeMillis()
+) : WebSocketMessage()
 
 // Обёртка для динамической десериализации
 @Serializable
