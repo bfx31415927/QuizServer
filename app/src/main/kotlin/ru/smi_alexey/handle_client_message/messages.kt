@@ -119,7 +119,7 @@ inline suspend fun <reified T : WebSocketMessage> sendWrapperMessage(
         val jsonString = json.encodeToString(wrapper)
         val frame = Frame.Text(jsonString)
         session.send(frame)
-        log.info("MyWebSocket", "sendWrapperMessage отправил сообщение: $jsonString")
+        log.info("sendWrapperMessage отправил сообщение: $jsonString")
     } catch (e: Exception) {
         log.error( "Ошибка в sendWrapperMessage: ${e.message}")
     }

@@ -19,12 +19,16 @@ import org.slf4j.event.Level
 import ru.smi_alexey.db.testConnection
 import ru.smi_alexey.handle_client_message.handleWrapperMessage
 import ru.smi_alexey.handle_client_message.handleWebSocketMessage
+import ru.smi_alexey.handle_client_message.sendDirectMessage
 import ru.smi_alexey.handle_client_message.sendWrapperMessage
 import ru.smi_alexey.log.log
 import ru.smi_alexey.quizserver.app.serverPort
+import ru.smi_alexey.serialization.CommandMessage
 import ru.smi_alexey.serialization.MessageType
 import ru.smi_alexey.serialization.MessageWrapper
 import ru.smi_alexey.serialization.ServerResponse
+import ru.smi_alexey.serialization.StatusUpdate
+import ru.smi_alexey.serialization.TextMessage
 import ru.smi_alexey.serialization.WebSocketMessage
 import ru.smi_alexey.serialization.analyzeMessageType
 import ru.smi_alexey.serialization.json
@@ -56,6 +60,45 @@ fun startEmbeddedServer() {
             webSocket("/ws") {
                 val clientAddress = call.request.origin.remoteAddress
                 log.info("WebSocket connected: $clientAddress")
+
+//                sendWrapperMessage(this,
+//                    TextMessage(
+//                        content = "Привет от Сервера!",
+//                        userId = "1"
+//                    )
+//                )
+//                sendWrapperMessage(this,
+//                    CommandMessage(
+//                        command = "start_game",
+//                        params = mapOf("round" to "1"),
+//                        target = "all"
+//                    )
+//                )
+//                sendWrapperMessage(this,
+//                    StatusUpdate(
+//                        status = "status",
+//                        userId = "2",
+//                    )
+//                )
+//                sendDirectMessage(this,
+//                    TextMessage(
+//                        content = "Привет от Сервера!",
+//                        userId = "1"
+//                    )
+//                )
+//                sendDirectMessage(this,
+//                    CommandMessage(
+//                        command = "start_game",
+//                        params = mapOf("round" to "1"),
+//                        target = "all"
+//                    )
+//                )
+//                sendDirectMessage(this,
+//                    StatusUpdate(
+//                        status = "status",
+//                        userId = "2",
+//                    )
+//                )
 
                 var exceptionCode = 0
                 try {
