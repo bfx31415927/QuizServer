@@ -24,8 +24,15 @@ suspend fun handleWebSocketMessage(
         is TextMessage -> {
             val mess = "Получено сообщение TextMessage: $message"
             log.info(mess)
+//            sendDirectMessage(session,
+//                ServerResponse( success = true, message = mess )
+//            )
             sendDirectMessage(session,
-                ServerResponse( success = true, message = mess )
+                CommandMessage(
+                        command = "stop_game",
+                        params = mapOf("round" to "2"),
+                        target = "not_all"
+                )
             )
         }
         is CommandMessage -> {
@@ -61,14 +68,15 @@ suspend fun handleWrapperMessage(
                 wrapper.data)
             val mess = "Получено сообщение TextMessage (в обёртке): $message"
             log.info(mess)
-            sendWrapperMessage(session,ServerResponse(success = true,message = mess)
-            )
+//            sendWrapperMessage(session,ServerResponse(success = true,message = mess))
+            sendWrapperMessage(session,TextMessage(content = "userId = 2", userId = "2"))
         }
         "command" -> {
             val command = json.decodeFromJsonElement(CommandMessage.serializer(),
                 wrapper.data)
             log.info("Получена команда (в обёртке): $command")
-            sendWrapperMessage(session, processCommand(command))
+//            sendWrapperMessage(session, processCommand(command))
+            sendWrapperMessage(session, StatusUpdate( status = "status", userId = "2"))
         }
         "status" -> {
             val statusUpdate = json.decodeFromJsonElement(StatusUpdate.serializer(),

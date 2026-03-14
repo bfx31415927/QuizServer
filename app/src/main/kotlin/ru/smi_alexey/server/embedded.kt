@@ -77,7 +77,7 @@ fun startEmbeddedServer() {
 //                sendWrapperMessage(this,
 //                    StatusUpdate(
 //                        status = "status",
-//                        userId = "2",
+//                        userId = "2"
 //                    )
 //                )
 //                sendDirectMessage(this,
