@@ -59,8 +59,10 @@ fun startEmbeddedServer() {
         routing {
             webSocket("/ws") {
                 val clientAddress = call.request.origin.remoteAddress
-                log.info("WebSocket connected: $clientAddress")
-
+                val deviceId = call.request.headers["X-Device-ID"] ?: "unknown"
+                val sessionId = this.hashCode() // Уникальный ID сессии
+                log.info("WebSocket connected: $clientAddress, Session ID: $sessionId")
+                log.info("deviceID: $deviceId")
 //                sendWrapperMessage(this,
 //                    TextMessage(
 //                        content = "Привет от Сервера!",
