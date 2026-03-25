@@ -49,7 +49,7 @@ fun startEmbeddedServer() {
         }
 
         install(WebSockets) {
-//            pingPeriod = Duration.ofSeconds(15)
+            pingPeriod = Duration.ofSeconds(15)
             timeout = Duration.ofMinutes(1)
             maxFrameSize = Long.MAX_VALUE
             masking = false
