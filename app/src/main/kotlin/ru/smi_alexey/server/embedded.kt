@@ -49,7 +49,7 @@ fun startEmbeddedServer() {
         }
 
         install(WebSockets) {
-            pingPeriod = Duration.ofSeconds(15)
+//            pingPeriod = Duration.ofSeconds(15)
             timeout = Duration.ofMinutes(1)
             maxFrameSize = Long.MAX_VALUE
             masking = false
@@ -105,8 +105,17 @@ fun startEmbeddedServer() {
 //                    send(Frame.Text("You are connected to WebSocket!"))//временно
                     for (frame in incoming) {
                         if (frame is Frame.Text) {
-                            val jsonString = frame.readText()
-                            log.debug("Получен JSON: $jsonString")
+                            val text = frame.readText()
+
+                            // Отвечаем на keep-alive
+                            if (text == "ping") {
+                                log.debug("Получен 'ping' от клиента")
+                                send(Frame.Text("pong"))  // Отправляем ответ
+                                continue
+                            }
+
+                            val jsonString = text
+                            log.debug("Получен jsonString от клиента: $jsonString")
                             try {
                                 val messageType = analyzeMessageType(jsonString)
                                 when (messageType) {
