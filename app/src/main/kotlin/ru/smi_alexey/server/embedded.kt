@@ -1,6 +1,6 @@
 package ru.smi_alexey.server
 
-import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
+import io.ktor.serialization.kotlinx.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -8,31 +8,17 @@ import io.ktor.server.plugins.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
-import io.ktor.utils.io.CancellationException
+import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.Json.Default.decodeFromString
-import kotlinx.serialization.json.Json.Default.serializersModule
 import org.slf4j.event.Level
-import ru.smi_alexey.db.testConnection
-import ru.smi_alexey.handle_client_message.handleWrapperMessage
 import ru.smi_alexey.handle_client_message.handleWebSocketMessage
-import ru.smi_alexey.handle_client_message.sendDirectMessage
+import ru.smi_alexey.handle_client_message.handleWrapperMessage
 import ru.smi_alexey.handle_client_message.sendWrapperMessage
 import ru.smi_alexey.log.log
 import ru.smi_alexey.quizserver.app.serverPort
-import ru.smi_alexey.serialization.CommandMessage
-import ru.smi_alexey.serialization.MessageType
-import ru.smi_alexey.serialization.MessageWrapper
-import ru.smi_alexey.serialization.ServerResponse
-import ru.smi_alexey.serialization.StatusUpdate
-import ru.smi_alexey.serialization.TextMessage
-import ru.smi_alexey.serialization.WebSocketMessage
-import ru.smi_alexey.serialization.analyzeMessageType
-import ru.smi_alexey.serialization.json
-import ru.smi_alexey.serialization.webSocketSerializersModule
+import ru.smi_alexey.serialization.*
 import java.io.IOException
 import java.time.Duration
 
@@ -61,58 +47,12 @@ fun startEmbeddedServer() {
                 val clientAddress = call.request.origin.remoteAddress
                 log.info("WebSocket connected: $clientAddress")
 
-//                sendWrapperMessage(this,
-//                    TextMessage(
-//                        content = "Привет от Сервера!",
-//                        userId = "1"
-//                    )
-//                )
-//                sendWrapperMessage(this,
-//                    CommandMessage(
-//                        command = "start_game",
-//                        params = mapOf("round" to "1"),
-//                        target = "all"
-//                    )
-//                )
-//                sendWrapperMessage(this,
-//                    StatusUpdate(
-//                        status = "status",
-//                        userId = "2",
-//                    )
-//                )
-//                sendDirectMessage(this,
-//                    TextMessage(
-//                        content = "Привет от Сервера!",
-//                        userId = "1"
-//                    )
-//                )
-//                sendDirectMessage(this,
-//                    CommandMessage(
-//                        command = "start_game",
-//                        params = mapOf("round" to "1"),
-//                        target = "all"
-//                    )
-//                )
-//                sendDirectMessage(this,
-//                    StatusUpdate(
-//                        status = "status",
-//                        userId = "2",
-//                    )
-//                )
-
                 var exceptionCode = 0
                 try {
 //                    send(Frame.Text("You are connected to WebSocket!"))//временно
                     for (frame in incoming) {
                         if (frame is Frame.Text) {
                             val text = frame.readText()
-
-                            // Отвечаем на keep-alive
-                            if (text == "ping") {
-                                log.debug("Получен 'ping' от клиента")
-                                send(Frame.Text("pong"))  // Отправляем ответ
-                                continue
-                            }
 
                             val jsonString = text
                             log.debug("Получен jsonString от клиента: $jsonString")
@@ -137,21 +77,27 @@ fun startEmbeddedServer() {
                                     MessageType.UNKNOWN -> {
                                         val mess = "Получено сообщения неподдерживаемого формата: $jsonString"
                                         log.error(mess)
-                                        sendWrapperMessage(this,
-                                            ServerResponse( success = false, message = mess))
+                                        sendWrapperMessage(
+                                            this,
+                                            ServerResponse(success = false, message = mess)
+                                        )
                                     }
                                 }
                             } catch (e: Exception) {
                                 val mess = "Ошибка обработки сообщения: $jsonString"
                                 log.error(mess, e)
-                                sendWrapperMessage(this,
-                                    ServerResponse(success = false, message = mess))
+                                sendWrapperMessage(
+                                    this,
+                                    ServerResponse(success = false, message = mess)
+                                )
                             }
                         } else {
                             val mess = "Получен фрейм неподдерживаемого типа: ${frame::class.simpleName}"
                             log.warn(mess)
-                            sendWrapperMessage(this,
-                                ServerResponse( success = false, message = mess))
+                            sendWrapperMessage(
+                                this,
+                                ServerResponse(success = false, message = mess)
+                            )
                         }
                     }
 
