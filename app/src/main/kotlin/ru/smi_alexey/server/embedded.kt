@@ -54,6 +54,13 @@ fun startEmbeddedServer() {
                         if (frame is Frame.Text) {
                             val text = frame.readText()
 
+                            // Отвечаем на keep-alive
+//                            if (text == "ping") {
+//                                log.debug("Получен 'ping' от клиента")
+//                                send(Frame.Text("pong"))  // Отправляем ответ
+//                                continue
+//                            }
+
                             val jsonString = text
                             log.debug("Получен jsonString от клиента: $jsonString")
                             try {
