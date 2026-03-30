@@ -21,6 +21,13 @@ dependencies {
     implementation(libs.slf4j.api)      // Добавляем явно
     implementation(libs.logback.classic)
     implementation(libs.flyway.core)
+    // Тестовые зависимости
+    testImplementation(kotlin("test"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 application {

@@ -36,7 +36,7 @@ data class Gamer(
     val id: Long,
     val login: String,
     val password: String,
-    val email: String,
+    val email: String?,
     val createdAt: Instant
 )
 
@@ -45,13 +45,11 @@ object GamerDao {
 
     fun createGamer(login: String, password: String, email: String): Gamer? {
         return transaction {
-            // Проверяем, существует ли пользователь с таким login или email
-            val existing = Gamers.select {
-                (Gamers.login eq login) or (Gamers.email eq email)
-            }.firstOrNull()
+            // Проверяем, существует ли пользователь с таким login
+            val existing = Gamers.select {Gamers.login eq login}.firstOrNull()
 
             if (existing != null) {
-                log.warn("Попытка создать существующего пользователя: $login / $email")
+                log.warn("Попытка создать существующего пользователя: $login")
                 return@transaction null
             }
 
