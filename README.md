@@ -278,7 +278,7 @@ exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", versio
 и
 "exposed-java-time",  
 
-30.03.2026 (13:47
+30.03.2026 (13:47)
 ------------------
 1) Подкорректировал GamersDao.kt
 2) Оставил пока единственный скорректированный файл миграции V1__First_migration.sql
@@ -299,6 +299,14 @@ exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", versio
                                 из IDEA:      Правой кнопкой на папке src/test → Run 'Tests in <имя проекта>'
                                               или нажать Ctrl+Shift+F10 на корневой папке тестов 
 
-
-
+30.03.2026 (16:41)
+------------------
+1) Добавил в GamersDao.kt функцию deleteAllGamers()
+2) Добавил в migrations.kt функцию shutdown() для дисконнекта с БД.  и 
+3) В Main.kt подправил импорт import ru.smi_alexey.db.runMigrations,
+   чтобы вызывалась самая нижняя функция runMigrations()
+4) Добавил в dateTime.kt функцию Instant.toLocalString(),
+   т.к. иначе значения Instant выводились на 3 часа раньше московского времени (МОСКВАЖ UTC + 3)
+5) Добавил тест GamersDaoTests.kt, в котором пока реализовал единственную
+   функцию createGamer1()
 

@@ -10,6 +10,8 @@ import ru.smi_alexey.quizserver.app.dbUser
 import ru.smi_alexey.quizserver.app.dbUserPassword
 
 object MigrationUtils {
+    private var dataSource: HikariDataSource? = null
+
     private fun createDataSource() = HikariDataSource(HikariConfig().apply {
         jdbcUrl = dbUrl
         username = dbUser
@@ -19,11 +21,11 @@ object MigrationUtils {
 
     fun runMigrations() {
         // Создаём DataSource
-        val dataSource = createDataSource()
+        dataSource = createDataSource()
 //        log.info("✅ DataSource создан")
 
         // Подключаемся к БД с помощью Exposed
-        Database.connect(dataSource)
+        Database.connect(dataSource!!)
 //        log.info("✅ Exposed подключён к DataSource")
 
         log.info("🚀 Настраиваем Flyway...")
@@ -41,6 +43,18 @@ object MigrationUtils {
 
 //        dataSource.close() // Не закрывать, если будет использоваться дальше
     }
+
+    // Новая функция для закрытия соединения
+    fun shutdown() {
+        try {
+            dataSource?.close()
+            dataSource = null
+        log.info("Соединение с БД закрыто")
+        } catch (t: Throwable) {
+            log.error("Ошибка при dataSource?.close()!")
+        }
+    }
+
 }
 
 fun runMigrations() {
@@ -48,10 +62,10 @@ fun runMigrations() {
         MigrationUtils.runMigrations()
         log.info("🎉 Миграции успешно применены")
     } catch (t: Throwable) {
-        log.info("🎉 C миграциями проблемы")
-        log.info("❌ Тип ошибки: ${t.javaClass}")
-        log.info("📝 Сообщение: ${t.message}")
-        log.info("📊 Стектрейс:")
+        log.error("🎉 C миграциями проблемы")
+        log.error("❌ Тип ошибки: ${t.javaClass}")
+        log.error("📝 Сообщение: ${t.message}")
+        log.error("📊 Стектрейс:")
         t.printStackTrace()
     }
 }

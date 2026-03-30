@@ -4,6 +4,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertAndGetId
@@ -130,6 +131,12 @@ object GamerDao {
     fun deleteGamer(gamerId: Long): Boolean {
         return transaction {
             Gamers.deleteWhere { Gamers.id eq gamerId } > 0
+        }
+    }
+
+    fun deleteAllGamers(): Boolean {
+        return transaction {
+            Gamers.deleteAll() > 0  // true если были удалены записи
         }
     }
 
