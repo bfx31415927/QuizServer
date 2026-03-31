@@ -25,7 +25,7 @@ import java.time.Instant
 object Gamers : LongIdTable() {
     val login = text("login")
     val password = text("password")
-    val email = text("email")
+    val email = text("email").nullable()
     /*
         Время будет ставиться только в БД.
         В Kotlin можно не передавать createdAt при вставке.
@@ -44,7 +44,7 @@ data class Gamer(
 // DAO с методами для работы с БД
 object GamerDao {
 
-    fun createGamer(login: String, password: String, email: String): Gamer? {
+    fun createGamer(login: String, password: String, email: String?): Gamer? {
         return transaction {
             // Проверяем, существует ли пользователь с таким login
             val existing = Gamers.select {Gamers.login eq login}.firstOrNull()
@@ -66,7 +66,7 @@ object GamerDao {
     }
 
     //функция на всякий случай
-    fun createGamerWithId(id: Long, login: String, password: String, email: String): Gamer? {
+    fun createGamerWithId(id: Long, login: String, password: String, email: String?): Gamer? {
         return transaction {
             // Проверяем, нет ли уже такого id
             if (Gamers.select { Gamers.id eq id }.singleOrNull() != null) {
@@ -120,21 +120,30 @@ object GamerDao {
         }
     }
 
-    fun updatePassword(gamerId: Long, newPassword: String): Boolean {
+    fun updatePassword(login: String, newPassword: String): Boolean {
         return transaction {
-            Gamers.update({ Gamers.id eq gamerId }) {
+            Gamers.update({ Gamers.login eq login }) {
                 it[password] = newPassword  // TODO: хешировать!
             } > 0
         }
     }
 
-    fun deleteGamer(gamerId: Long): Boolean {
+    fun deleteGamerPerID(gamerId: Long): Boolean {
         return transaction {
             Gamers.deleteWhere { Gamers.id eq gamerId } > 0
         }
     }
 
+
+
+    fun deleteGamerPerLogin(login: String): Boolean {
+        return transaction {
+            Gamers.deleteWhere { Gamers.login eq login } > 0
+        }
+    }
+
     fun deleteAllGamers(): Boolean {
+        log.debug("deleteAllGamers()")
         return transaction {
             Gamers.deleteAll() > 0  // true если были удалены записи
         }
@@ -148,5 +157,17 @@ object GamerDao {
             email = row[Gamers.email],
             createdAt = row[Gamers.createdAt]
         )
+    }
+
+    fun getGamersRowsCount(): Long {
+        return transaction {
+            var count = 0L
+            exec("SELECT COUNT(*) FROM gamers") { rs ->
+                if (rs.next()) {
+                    count = rs.getLong(1)
+                }
+            }
+            count
+        }
     }
 }

@@ -310,3 +310,7 @@ exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", versio
 5) Добавил тест GamersDaoTests.kt, в котором пока реализовал единственную
    функцию createGamer1()
 
+31.03.2026 (21:40)
+------------------
+1) Добавил несколько функций в GamersDao.kt
+2) Добавил несколько тестов в GamersDaoTest.kt
