@@ -87,9 +87,11 @@ class GamersDaoTest {
     fun getGamerByLogin_Test() {
         log.debug("getGamerByLogin_Test() [BEGIN]")
         insertManyGamerWithoudID_Test()
-        val gamer: Gamer? = getGamerByLogin("login100")
+        var gamer: Gamer? = getGamerByLogin("login100")
         assertEquals("login100", gamer?.login)
         assertEquals("password100", gamer?.password)
+        gamer = getGamerByLogin("login1001")
+        assertEquals(null, gamer)
         log.debug("getGamerByLogin_Test() [END]")
     }
 

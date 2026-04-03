@@ -314,3 +314,10 @@ exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", versio
 ------------------
 1) Добавил несколько функций в GamersDao.kt
 2) Добавил несколько тестов в GamersDaoTest.kt
+
+03.04.2026 (19:46)
+------------------
+1)Только начал изменять embedded.kt
+2)Слегка подправил getGamerByLogin_Test()
+3)Добавил WebSocketClient.kt  
+4)Добавил WebSocketClientManager.kt 

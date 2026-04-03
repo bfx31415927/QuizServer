@@ -13,6 +13,7 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import org.slf4j.event.Level
+import ru.smi_alexey.clients.WebSocketClientManager
 import ru.smi_alexey.handle_client_message.handleWebSocketMessage
 import ru.smi_alexey.handle_client_message.handleWrapperMessage
 import ru.smi_alexey.handle_client_message.sendWrapperMessage
@@ -46,6 +47,8 @@ fun startEmbeddedServer() {
             webSocket("/ws") {
                 val clientAddress = call.request.origin.remoteAddress
                 log.info("WebSocket connected: $clientAddress")
+
+                val client = WebSocketClientManager.addClient(this)
 
                 var exceptionCode = 0
                 try {
