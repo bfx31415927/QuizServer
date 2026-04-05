@@ -4,16 +4,45 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.serializer
+import ru.smi_alexey.clients.WebSocketClient
+import ru.smi_alexey.clients.WebSocketClientManager
 import ru.smi_alexey.log.log
 import ru.smi_alexey.serialization.*
 
 
+// Обработка авторизации
+suspend fun handleAuthMessage(
+    session: DefaultWebSocketServerSession,
+    message: AuthMessage,
+    client: WebSocketClient
+) {
+    val result = when (message.action) {
+        "login" -> {
+            WebSocketClientManager.authenticateClient(client.id, message.login, message.password)
+        }
+        "register" -> {
+            WebSocketClientManager.registerClient(client.id, message.login, message.password, message.email!!)
+        }
+        else -> {
+            sendDirectMessage(session, ServerResponse(success = false, message="auth_unknown"))
+            return
+        }
+    }
+    sendDirectMessage(session, ServerResponse(success=result, message="${message.action}"))
+}
+
 // Обработка прямого экземпляра sealed-класса
 suspend fun handleWebSocketMessage(
     session: DefaultWebSocketServerSession,
-    message: WebSocketMessage
+    message: WebSocketMessage,
+    client: WebSocketClient
 ) {
     when (message) {
+
+        is AuthMessage -> {
+            handleAuthMessage(session, message, client)
+        }
+
         is TextMessage -> {
             val mess = "Получено сообщение TextMessage: $message"
             log.info(mess)

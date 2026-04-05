@@ -14,6 +14,15 @@ sealed class WebSocketMessage {
 }
 
 @Serializable
+data class AuthMessage(
+    override val _type: String = "auth",
+    val action: String, // "login" или "register"
+    val login: String,
+    val password: String,
+    val email: String? = null  // только для регистрации
+) : WebSocketMessage()
+
+@Serializable
 data class TextMessage(
     override val _type: String = "text",
     val content: String,

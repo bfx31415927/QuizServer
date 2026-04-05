@@ -75,7 +75,7 @@ fun startEmbeddedServer() {
                                             WebSocketMessage.serializer(),
                                             jsonString
                                         )
-                                        handleWebSocketMessage(this, message)
+                                        handleWebSocketMessage(this, message, client)
                                     }
 
                                     MessageType.WRAPPED -> {
@@ -129,6 +129,7 @@ fun startEmbeddedServer() {
                     exceptionCode = 5
                     log.error("Цикл 'for' прерван из‑за неожиданной ошибки: ${e.javaClass.simpleName}: ${e.message}")
                 } finally {
+                    WebSocketClientManager.removeClient(client.id)
                     log.error("WebSocket disconnected: $clientAddress")
                 }
             }

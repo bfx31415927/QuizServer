@@ -321,3 +321,11 @@ exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", versio
 2)Слегка подправил getGamerByLogin_Test()
 3)Добавил WebSocketClient.kt  
 4)Добавил WebSocketClientManager.kt 
+
+05.04.2026 (11:41)
+------------------
+1)Добавил в messages.kt Обработку авторизации и добавил параметр client: WebSocketClient
+  в функцию handleWebSocketMessage()
+2)Добавил в serialization.kt data class AuthMessage
+3) Слегка откорректировал файл emdedded.kt: учел пункт 1) и добавил в finally удаление клиента
+    
