@@ -72,66 +72,7 @@ suspend fun handleWebSocketMessage(
         }
 
         is ServerResponse -> {
-            val mess = "Получено сообщение ServerResponse: $message"
-            log.error(mess)
-            sendDirectMessage(
-                session,
-                ServerResponse(success = false, message = mess)
-            )
-        }
-    }
-}
-
-suspend fun handleWrapperMessage(
-    session: DefaultWebSocketServerSession,
-    wrapper: MessageWrapper
-) {
-    when (wrapper.wr_type) {
-        "text" -> {
-            val message = json.decodeFromJsonElement(
-                TextMessage.serializer(),
-                wrapper.data
-            )
-            val mess = "Получено сообщение TextMessage (в обёртке): $message"
-            log.info(mess)
-            sendWrapperMessage(
-                session, ServerResponse(success = true, message = mess)
-            )
-        }
-
-        "command" -> {
-            val command = json.decodeFromJsonElement(
-                CommandMessage.serializer(),
-                wrapper.data
-            )
-            log.info("Получена команда (в обёртке): $command")
-            sendWrapperMessage(session, processCommand(command))
-        }
-
-        "status" -> {
-            val statusUpdate = json.decodeFromJsonElement(
-                StatusUpdate.serializer(),
-                wrapper.data
-            )
-            val mess = "Статус пользователя обновлен (в обёртке): $statusUpdate"
-            log.info(mess)
-            updateUserStatus(statusUpdate.userId ?: "unknown", statusUpdate.status)
-            sendWrapperMessage(session, ServerResponse(success = true, message = mess))
-
-        }
-
-        "client_response" -> {
-            val clientResponse = json.decodeFromJsonElement(
-                ClientResponse.serializer(),
-                wrapper.data
-            )
-            log.info("Получен clientResponse (в обёртке): $clientResponse")
-        }
-
-        else -> {
-            val mess = "Получен неизвестный/неверный тип сообщения в обёртке: ${wrapper.wr_type}"
-            log.error(mess)
-            sendWrapperMessage(session, ServerResponse(success = false, message = mess))
+            //сюда попасть не должны
         }
     }
 }
@@ -146,27 +87,6 @@ private fun processCommand(command: CommandMessage): ServerResponse {
 
 private fun updateUserStatus(userId: String, status: String) {
     log.info("У пользователя $userId теперь статус: '$status'")
-}
-
-suspend inline fun <reified T : WebSocketMessage> sendWrapperMessage(
-    session: DefaultWebSocketServerSession,
-    message: T
-) {
-    try {
-        val data = json.encodeToJsonElement(serializer<T>(), message).jsonObject
-        val wrapper = MessageWrapper(
-            wr_type = message._type,
-            version = "1.0",
-            data = data
-        )
-        log.info("sendWrapperMessage готовит к отправке сообщение: $wrapper")
-        val jsonString = json.encodeToString(wrapper)
-        val frame = Frame.Text(jsonString)
-        session.send(frame)
-        log.info("sendWrapperMessage отправил сообщение: $jsonString")
-    } catch (e: Exception) {
-        log.error("Ошибка в sendWrapperMessage: ${e.message}")
-    }
 }
 
 suspend inline fun <reified T : WebSocketMessage> sendDirectMessage(

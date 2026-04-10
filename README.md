@@ -328,4 +328,10 @@ exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", versio
   в функцию handleWebSocketMessage()
 2)Добавил в serialization.kt data class AuthMessage
 3) Слегка откорректировал файл emdedded.kt: учел пункт 1) и добавил в finally удаление клиента
+
+10.04.2026 (14:54)
+------------------
+1)В messages.kt убрал обертку
+2) в Serialization убрал все, что связано с обёрткой и дополнил polymorphic(WebSocketMessage::class) {}
+3) в embedded заменил sendWrapperMessage на sendDirectMessage
     

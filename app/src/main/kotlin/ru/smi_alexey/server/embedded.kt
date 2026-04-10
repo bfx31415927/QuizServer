@@ -15,8 +15,7 @@ import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import org.slf4j.event.Level
 import ru.smi_alexey.clients.WebSocketClientManager
 import ru.smi_alexey.handle_client_message.handleWebSocketMessage
-import ru.smi_alexey.handle_client_message.handleWrapperMessage
-import ru.smi_alexey.handle_client_message.sendWrapperMessage
+import ru.smi_alexey.handle_client_message.sendDirectMessage
 import ru.smi_alexey.log.log
 import ru.smi_alexey.quizserver.app.serverPort
 import ru.smi_alexey.serialization.*
@@ -78,16 +77,10 @@ fun startEmbeddedServer() {
                                         handleWebSocketMessage(this, message, client)
                                     }
 
-                                    MessageType.WRAPPED -> {
-                                        // Сообщение в обёртке
-                                        val wrapper = json.decodeFromString<MessageWrapper>(jsonString)
-                                        handleWrapperMessage(this, wrapper)
-                                    }
-
                                     MessageType.UNKNOWN -> {
                                         val mess = "Получено сообщения неподдерживаемого формата: $jsonString"
                                         log.error(mess)
-                                        sendWrapperMessage(
+                                        sendDirectMessage(
                                             this,
                                             ServerResponse(success = false, message = mess)
                                         )
@@ -96,7 +89,7 @@ fun startEmbeddedServer() {
                             } catch (e: Exception) {
                                 val mess = "Ошибка обработки сообщения: $jsonString"
                                 log.error(mess, e)
-                                sendWrapperMessage(
+                                sendDirectMessage(
                                     this,
                                     ServerResponse(success = false, message = mess)
                                 )
@@ -104,7 +97,7 @@ fun startEmbeddedServer() {
                         } else {
                             val mess = "Получен фрейм неподдерживаемого типа: ${frame::class.simpleName}"
                             log.warn(mess)
-                            sendWrapperMessage(
+                            sendDirectMessage(
                                 this,
                                 ServerResponse(success = false, message = mess)
                             )

@@ -62,23 +62,15 @@ data class ClientResponse(
     val processedAt: Long = System.currentTimeMillis()
 ) : WebSocketMessage()
 
-// Обёртка для динамической десериализации
-@Serializable
-data class MessageWrapper(
-    val wr_type: String,
-    val version: String = "1.0",
-    val data: JsonObject
-)
-
 // Модуль сериализаторов
 val webSocketSerializersModule = SerializersModule {
     polymorphic(WebSocketMessage::class) {
-//        subclass(TextMessage::class, TextMessage.serializer())
-//        subclass(CommandMessage::class, CommandMessage.serializer())
-//        subclass(StatusUpdate::class, StatusUpdate.serializer())
+        subclass(AuthMessage::class)
         subclass(TextMessage::class)
         subclass(CommandMessage::class)
         subclass(StatusUpdate::class)
+        subclass(ServerResponse::class)
+        subclass(ClientResponse::class)
     }
 }
 
@@ -87,11 +79,8 @@ fun analyzeMessageType(jsonString: String): MessageType {
     return try {
         val jsonElement = Json.parseToJsonElement(jsonString).jsonObject
 
-        // Проверяем наличие поля "wr_type" — признак обёртки
-        if ("wr_type" in jsonElement) {
-            MessageType.WRAPPED
-        } else if ("type" in jsonElement) {
-            // Если есть "type", но нет "wr_type" — прямой формат
+    if ("type" in jsonElement) {
+            // прямой формат
             MessageType.DIRECT
         } else {
             MessageType.UNKNOWN
@@ -103,7 +92,6 @@ fun analyzeMessageType(jsonString: String): MessageType {
 
 enum class MessageType {
     DIRECT,    // Прямой экземпляр WebSocketMessage
-    WRAPPED,  // Сообщение в обёртке MessageWrapper
     UNKNOWN     // Неизвестный формат
 }
 // Создаём экземпляр Json с нужными настройками
