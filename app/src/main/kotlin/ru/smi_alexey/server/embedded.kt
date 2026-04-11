@@ -15,10 +15,12 @@ import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import org.slf4j.event.Level
 import ru.smi_alexey.clients.WebSocketClientManager
 import ru.smi_alexey.handle_client_message.handleWebSocketMessage
-import ru.smi_alexey.handle_client_message.sendDirectMessage
 import ru.smi_alexey.log.log
 import ru.smi_alexey.quizserver.app.serverPort
-import ru.smi_alexey.serialization.*
+import ru.smi_alexey.serialization.MessageType
+import ru.smi_alexey.serialization.WebSocketMessage
+import ru.smi_alexey.serialization.analyzeMessageType
+import ru.smi_alexey.serialization.json
 import java.io.IOException
 import java.time.Duration
 
@@ -78,52 +80,37 @@ fun startEmbeddedServer() {
                                     }
 
                                     MessageType.UNKNOWN -> {
-                                        val mess = "Получено сообщения неподдерживаемого формата: $jsonString"
-                                        log.error(mess)
-                                        sendDirectMessage(
-                                            this,
-                                            ServerResponse(success = false, message = mess)
-                                        )
+                                        log.error("[embedded] Получено сообщения неподдерживаемого формата: $jsonString")
                                     }
                                 }
                             } catch (e: Exception) {
-                                val mess = "Ошибка обработки сообщения: $jsonString"
-                                log.error(mess, e)
-                                sendDirectMessage(
-                                    this,
-                                    ServerResponse(success = false, message = mess)
-                                )
+                                log.error("[embedded] Ошибка обработки сообщения: $jsonString", e)
                             }
                         } else {
-                            val mess = "Получен фрейм неподдерживаемого типа: ${frame::class.simpleName}"
-                            log.warn(mess)
-                            sendDirectMessage(
-                                this,
-                                ServerResponse(success = false, message = mess)
-                            )
+                            log.error("[embedded] Получен фрейм неподдерживаемого типа: ${frame::class.simpleName}")
                         }
                     }
 
-                    log.info("Цикл 'for' завершён нормально: канал закрыт")
+                    log.info("[embedded] Цикл 'for' завершён нормально: канал закрыт")
 
                 } catch (e: ClosedReceiveChannelException) {
                     exceptionCode = 1
-                    log.info("Цикл 'for' прерван: явное закрытие канала (ClosedReceiveChannelException)")
+                    log.error("[embedded] Цикл 'for' прерван: явное закрытие канала (ClosedReceiveChannelException)")
                 } catch (e: CancellationException) {
                     exceptionCode = 2
-                    log.info("Цикл 'for' прерван: корутина отменена (CancellationException)")
+                    log.error("[embedded] Цикл 'for' прерван: корутина отменена (CancellationException)")
                 } catch (e: TimeoutCancellationException) {
                     exceptionCode = 3
-                    log.info("Цикл 'for' прерван: таймаут (TimeoutCancellationException)")
+                    log.error("[embedded] Цикл 'for' прерван: таймаут (TimeoutCancellationException)")
                 } catch (e: IOException) {
                     exceptionCode = 4
-                    log.error("Цикл 'for' прерван: сетевая ошибка (IOException): ${e.message}")
+                    log.error("[embedded] Цикл 'for' прерван: сетевая ошибка (IOException): ${e.message}")
                 } catch (e: Exception) {
                     exceptionCode = 5
-                    log.error("Цикл 'for' прерван из‑за неожиданной ошибки: ${e.javaClass.simpleName}: ${e.message}")
+                    log.error("[embedded] Цикл 'for' прерван из‑за неожиданной ошибки: ${e.javaClass.simpleName}: ${e.message}")
                 } finally {
                     WebSocketClientManager.removeClient(client.id)
-                    log.error("WebSocket disconnected: $clientAddress")
+                    log.error("[embedded] WebSocket disconnected: $clientAddress")
                 }
             }
         }

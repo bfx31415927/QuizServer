@@ -6,6 +6,8 @@ import kotlinx.coroutines.isActive
 import ru.smi_alexey.db.dao.Gamer
 import ru.smi_alexey.db.dao.GamerDao
 import ru.smi_alexey.log.log
+import ru.smi_alexey.serialization.WebSocketMessage
+import ru.smi_alexey.serialization.json
 
 class WebSocketClient(
     val id: Long,  // ID клиента (уникальный для сессии)
@@ -29,11 +31,12 @@ class WebSocketClient(
 
         if (authenticatedGamer != null) {
             this.gamer = authenticatedGamer
-            log.info("Клиент id = $id авторизован как '${authenticatedGamer.login}' (gamerId: ${authenticatedGamer.id})")
+            log.info("[authenticate] Клиент id = $id авторизован под логином '${authenticatedGamer.login}' " +
+                    "(gamerId: ${authenticatedGamer.id})")
             return true
         }
 
-        log.warn("Неудачная попытка авторизации клиента id = $id под логином: '$login' и  паролем '$password'")
+        log.error("[authenticate] Неудачная попытка авторизации клиента id = $id под логином: '$login' и  паролем '$password'")
         return false
     }
 
@@ -49,11 +52,19 @@ class WebSocketClient(
         return false
     }
 
-    suspend fun sendMessage(message: String) {
+    suspend inline fun <reified T : WebSocketMessage> sendMessage(message: T) {
         try {
-            session.send(Frame.Text(message))
+            val jsonString = json.encodeToString(
+                WebSocketMessage.serializer(),
+                message
+            )
+
+            val frame = Frame.Text(jsonString)
+            session.send(frame)
+
+            log.info("sendMessage отправил сообщение: $jsonString")
         } catch (e: Exception) {
-            log.error("Ошибка отправки сообщения '$message'  клиенту id = $id с логином: '${gamer?.login}' [${e.message}]")
+            log.error("Ошибка в sendMessage: message = '$message'  клиенту id = $id с логином: '${gamer?.login}' [${e.message}]")
         }
     }
 

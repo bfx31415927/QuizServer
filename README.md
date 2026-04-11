@@ -335,3 +335,7 @@ exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", versio
 2) в Serialization убрал все, что связано с обёрткой и дополнил polymorphic(WebSocketMessage::class) {}
 3) в embedded заменил sendWrapperMessage на sendDirectMessage
     
+
+11.04.2026 (16:44)
+------------------
+Почти подправил все сообщения для авторизации

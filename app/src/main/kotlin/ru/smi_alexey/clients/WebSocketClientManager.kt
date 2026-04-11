@@ -2,7 +2,10 @@ package ru.smi_alexey.clients
 
 import io.ktor.server.websocket.DefaultWebSocketServerSession
 import io.ktor.websocket.close
+import ru.smi_alexey.clients.WebSocketClientManager.gamerIdToClientId
 import ru.smi_alexey.log.log
+import ru.smi_alexey.serialization.ServerResponse
+import ru.smi_alexey.serialization.WebSocketMessage
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
@@ -46,70 +49,55 @@ object WebSocketClientManager {
     }
 
     /**
-     * Авторизация клиента (упрощённая версия с remove)
+     * Авторизация клиента
      */
-    suspend fun authenticateClient(clientId: Long, login: String, password: String): Boolean {
+    suspend fun authenticateClient(clientId: Long, login: String, password: String) {
         val client = clients[clientId]
-        if(client == null) {
-            log.error("Клиент id=$clientId отсутствует в clients")
-            return false
-        }
 
-        val success = client.authenticate(login, password)
+        val success = client?.authenticate(login, password)!!
         if (!success){
-            log.error("Неверно указаны логин '$login' и/или пароль '$password' клиента с id=$clientId")
-            return false
-        }
-
-        val gamer = client.gamer
-
-        // Сначала удаляем старого клиента, если он есть
-        val existingClientId = gamerIdToClientId.remove(gamer?.id)
-
-        if (existingClientId != null && existingClientId != clientId) {
-            val oldClient = clients[existingClientId]
-            if (oldClient?.isActive() == true) {
-                log.warn("Пользователь ${gamer?.login} уже подключен. Завершаем старое соединение")
-                try {
-                    oldClient.sendMessage("""{"type":"warning","message":"Вы вошли с другого устройства"}""")
-                    oldClient.session.close()
-                } catch (e: Exception) {
-                    // Игнорируем ошибки при отключении
+            log.error("[authenticateClient] Неверно указаны логин '$login' и/или пароль '$password' клиента с id=$clientId")
+        } else {
+            log.info("[authenticateClient] Логин '$login' и пароль '$password' клиента с id=$clientId указаны верно!")
+            val gamer = client.gamer
+            // Проверяем, авторизован ли уже этот пользователь
+            val existingClientId = gamerIdToClientId[gamer?.id]
+            if (existingClientId != null) {
+                if (existingClientId != clientId) { //пользователь уже авторизован на другом устройстве
+                    client.sendMessage(ServerResponse(success = false, message = "login_repeated"))
+                    return
+                } else {//пользователь уже авторизован на этом устройстве
+                    client.sendMessage(ServerResponse(success = true, message = "login_yet"))
+                    return
                 }
+            } else { //existingClientId == null (пользователь еще не авторизован на этом устройстве)
+                // Авторизуем нового клиента
+                gamerIdToClientId[gamer?.id!!] = clientId
+                loginToClientId[gamer.login] = clientId
+                log.info("[authenticateClient] Клиент c clientId = $clientId авторизован как '${gamer.login}'")
             }
-            // Удаляем из индекса логинов
-            oldClient?.gamer?.login?.let { loginToClientId.remove(it, existingClientId) }
         }
-
-        // Теперь регистрируем нового клиента
-        gamerIdToClientId[gamer?.id!!] = clientId
-        loginToClientId[gamer.login] = clientId
-
-        log.info("Клиент c clientId = $clientId авторизован как '${gamer.login}'")
-        return true
+        client.sendMessage(ServerResponse(success=success, message="login"))
     }
 
     /**
      * Регистрация нового пользователя
      */
-    fun registerClient(clientId: Long, login: String, password: String, email: String): Boolean {
+    suspend fun registerClient(clientId: Long, login: String, password: String, email: String) {
         val client = clients[clientId]
-        if(client == null) {
-            log.error("Клиент id=$clientId отсутствует в clients")
-            return false
-        }
 
-        val success = client.register(login, password, email)
+        val success = client?.register(login, password, email)
 
-        if (success) {
-            val gamer = client.gamer!!  // безопасно, т.к. register установил gamer
+        if (success!!) {
+            log.info("[registerClient] Новый клиент c client.id = ${client.id} " +
+                    "успешно зарегистрирован с логином '$login' и паролем '$password'")
+            val gamer = client.gamer!!
             gamerIdToClientId[gamer.id] = clientId
             loginToClientId[gamer.login] = clientId
-            return true
+        } else {
+            log.error("[registerClient] Игрок c логином: '$login' уже есть в БД!")
         }
-
-        log.error("Игрок c логином: '$login' уже есть в БД")
-        return false
+        client.sendMessage(ServerResponse(success=success, message="register"))
     }
 
     /**
@@ -148,7 +136,7 @@ object WebSocketClientManager {
     /**
      * Отправка сообщения всем аутентифицированным клиентам
      */
-    suspend fun broadcastToAuthenticated(message: String, excludeClientId: Long? = null) {
+    suspend inline fun <reified T : WebSocketMessage> broadcastToAuthenticated(message: T, excludeClientId: Long? = null) {
         val authenticatedClients = getAuthenticatedClients()
         var failedCount = 0
 
@@ -158,7 +146,7 @@ object WebSocketClientManager {
                     client.sendMessage(message)
                 } catch (e: Exception) {
                     failedCount++
-                    log.warn("Не удалось отправить сообщение клиенту ${client.id}: ${e.message}")
+                    log.warn("[broadcastToAuthenticated] Не удалось отправить сообщение = $message клиенту ${client.id}: ${e.message}")
                 }
             }
         }
@@ -173,7 +161,7 @@ object WebSocketClientManager {
     /**
      * Отправка сообщения конкретному пользователю по ID
      */
-    suspend fun sendToUser(gamerId: Long, message: String): Boolean {
+    suspend inline fun <reified T : WebSocketMessage> sendToUser(gamerId: Long, message: T): Boolean {
         val client = getClientByGamerId(gamerId)
         return if (client != null) {
             client.sendMessage(message)
@@ -187,7 +175,7 @@ object WebSocketClientManager {
     /**
      * Отправка сообщения конкретному пользователю по login
      */
-    suspend fun sendToLogin(login: String, message: String): Boolean {
+    suspend inline fun <reified T : WebSocketMessage> sendToLogin(login: String, message: T): Boolean {
         val client = getClientByLogin(login)
         return if (client != null) {
             client.sendMessage(message)

@@ -16,19 +16,19 @@ suspend fun handleAuthMessage(
     message: AuthMessage,
     client: WebSocketClient
 ) {
-    val result = when (message.action) {
+    when (message.action) {
         "login" -> {
+            log.info("[handleAuthMessage] BEFORE WebSocketClientManager.authenticateClient")
             WebSocketClientManager.authenticateClient(client.id, message.login, message.password)
         }
         "register" -> {
+            log.info("[handleAuthMessage] BEFORE WebSocketClientManager.registerClient")
             WebSocketClientManager.registerClient(client.id, message.login, message.password, message.email!!)
         }
         else -> {
-            sendDirectMessage(session, ServerResponse(success = false, message="auth_unknown"))
-            return
+            log.error("[handleAuthMessage] Получена неизвестная action = ${message.action}")
         }
     }
-    sendDirectMessage(session, ServerResponse(success=result, message="${message.action}"))
 }
 
 // Обработка прямого экземпляра sealed-класса
@@ -40,31 +40,26 @@ suspend fun handleWebSocketMessage(
     when (message) {
 
         is AuthMessage -> {
+            log.info("[handleWebSocketMessage] BEFORE handleAuthMessage")
             handleAuthMessage(session, message, client)
         }
 
         is TextMessage -> {
-            val mess = "Получено сообщение TextMessage: $message"
-            log.info(mess)
-            sendDirectMessage(
-                session,
-                ServerResponse(success = true, message = mess)
-            )
+//            val mess = "Получено сообщение TextMessage: $message"
+//            log.info(mess)
+//            client.sendMessage(ServerResponse(success = true, message = mess))
         }
 
         is CommandMessage -> {
-            log.info("Получена команда: $message")
-            sendDirectMessage(session, processCommand(message))
+//            log.info("Получена команда: $message")
+//            client.sendMessage(processCommand(message))
         }
 
         is StatusUpdate -> {
-            val mess = "Статус пользователя обновлен: ${message.status}"
-            log.info(mess)
-            updateUserStatus(message.userId ?: "unknown", message.status)
-            sendDirectMessage(
-                session,
-                ServerResponse(success = true, message = mess)
-            )
+//            val mess = "Статус пользователя обновлен: ${message.status}"
+//            log.info(mess)
+//            updateUserStatus(message.userId ?: "unknown", message.status)
+//            client.sendMessage(ServerResponse(success = true, message = mess))
         }
 
         is ClientResponse -> {
@@ -89,21 +84,21 @@ private fun updateUserStatus(userId: String, status: String) {
     log.info("У пользователя $userId теперь статус: '$status'")
 }
 
-suspend inline fun <reified T : WebSocketMessage> sendDirectMessage(
-    session: DefaultWebSocketServerSession,
-    message: T
-) {
-    try {
-        val jsonString = json.encodeToString(
-            WebSocketMessage.serializer(),
-            message
-        )
-
-        val frame = Frame.Text(jsonString)
-        session.send(frame)
-
-        log.info("sendDirectMessage отправил сообщение: $jsonString")
-    } catch (e: Exception) {
-        log.error("Ошибка в sendDirectMessage: ${e.message}")
-    }
-}
+//suspend inline fun <reified T : WebSocketMessage> sendDirectMessage(
+//    session: DefaultWebSocketServerSession,
+//    message: T
+//) {
+//    try {
+//        val jsonString = json.encodeToString(
+//            WebSocketMessage.serializer(),
+//            message
+//        )
+//
+//        val frame = Frame.Text(jsonString)
+//        session.send(frame)
+//
+//        log.info("sendDirectMessage отправил сообщение: $jsonString")
+//    } catch (e: Exception) {
+//        log.error("Ошибка в sendDirectMessage: ${e.message}")
+//    }
+//}
