@@ -64,9 +64,13 @@ object WebSocketClientManager {
             val existingClientId = gamerIdToClientId[gamer?.id]
             if (existingClientId != null) {
                 if (existingClientId != clientId) { //пользователь уже авторизован на другом устройстве
+                    log.info("[authenticateClient] Пользователь уже авторизован на другом устройстве!" +
+                            " (existingClientId: $existingClientId, clientId: $clientId)")
                     client.sendMessage(ServerResponse(success = false, message = "login_repeated"))
                     return
                 } else {//пользователь уже авторизован на этом устройстве
+                    log.info("[authenticateClient] Пользователь уже авторизован на этом устройстве!" +
+                            " (clientId: $clientId)")
                     client.sendMessage(ServerResponse(success = true, message = "login_yet"))
                     return
                 }
@@ -74,7 +78,7 @@ object WebSocketClientManager {
                 // Авторизуем нового клиента
                 gamerIdToClientId[gamer?.id!!] = clientId
                 loginToClientId[gamer.login] = clientId
-                log.info("[authenticateClient] Клиент c clientId = $clientId авторизован как '${gamer.login}'")
+                log.info("[authenticateClient] Клиент c clientId = $clientId успешно авторизован с login: '${gamer.login}'")
             }
         }
         client.sendMessage(ServerResponse(success=success, message="login"))
@@ -91,9 +95,6 @@ object WebSocketClientManager {
         if (success!!) {
             log.info("[registerClient] Новый клиент c client.id = ${client.id} " +
                     "успешно зарегистрирован с логином '$login' и паролем '$password'")
-            val gamer = client.gamer!!
-            gamerIdToClientId[gamer.id] = clientId
-            loginToClientId[gamer.login] = clientId
         } else {
             log.error("[registerClient] Игрок c логином: '$login' уже есть в БД!")
         }

@@ -339,3 +339,10 @@ exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", versio
 11.04.2026 (16:44)
 ------------------
 Почти подправил все сообщения для авторизации
+
+
+20.04.2026 (10:57) (Синхронизация с клиентом 1)
+------------------
+1) Подредактировал файлы WebSocketClient.kt, WebSocketClientManager.kt, GamersDao.kt для 
+   успешной авторизации и регистрации клиентов.
+2) Подправил V1__First_migration.sql  для индеса по email (убрал уникальность)	 

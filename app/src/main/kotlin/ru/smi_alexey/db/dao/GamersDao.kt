@@ -43,6 +43,26 @@ data class Gamer(
 
 // DAO с методами для работы с БД
 object GamerDao {
+    //добавление игрока в таблицу gamers
+    fun addGamer(login: String, password: String, email: String?): Boolean{
+        return transaction {
+            // Проверяем, существует ли пользователь с таким login
+            val existing = Gamers.select {Gamers.login eq login}.firstOrNull()
+
+            if (existing != null) {
+                log.warn("[GamerDao.addGamer()] Попытка создать существующего пользователя: $login")
+                return@transaction false
+            }
+
+            Gamers.insert {
+                it[Gamers.login] = login
+                it[Gamers.password] = password  // TODO: хешировать пароль!
+                it[Gamers.email] = email
+                // createdAt передастся по времени БД
+            }
+            return@transaction true
+        }
+    }
 
     fun createGamer(login: String, password: String, email: String?): Gamer? {
         return transaction {

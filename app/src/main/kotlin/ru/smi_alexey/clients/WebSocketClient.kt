@@ -31,21 +31,20 @@ class WebSocketClient(
 
         if (authenticatedGamer != null) {
             this.gamer = authenticatedGamer
-            log.info("[authenticate] Клиент id = $id авторизован под логином '${authenticatedGamer.login}' " +
+            log.info("[WebSocketClient.authenticate] Клиент id = $id авторизован под логином '$login' и паролем: '$password' " +
                     "(gamerId: ${authenticatedGamer.id})")
             return true
         }
 
-        log.error("[authenticate] Неудачная попытка авторизации клиента id = $id под логином: '$login' и  паролем '$password'")
+        log.error("[WebSocketClient.authenticate] Неудачная попытка авторизации клиента id = $id под логином: '$login' и  паролем '$password'")
         return false
     }
 
     fun register(login: String, password: String, email: String): Boolean {
-        val newGamer = GamerDao.createGamer(login, password, email)
+        val b = GamerDao.addGamer(login, password, email)
 
-        if (newGamer != null) {
-            this.gamer = newGamer
-            log.info("Клиент id = $id зарегистрирован под логином: '${newGamer.login}' (gamerId: ${newGamer.id})")
+        if (b) {
+            log.info("Клиент id = $id зарегистрирован под логином: '$login'")
             return true
         }
 
