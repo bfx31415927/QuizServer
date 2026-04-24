@@ -346,3 +346,30 @@ exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", versio
 1) Подредактировал файлы WebSocketClient.kt, WebSocketClientManager.kt, GamersDao.kt для 
    успешной авторизации и регистрации клиентов.
 2) Подправил V1__First_migration.sql  для индеса по email (убрал уникальность)	 
+
+24.04.2026 (17:16)
+------------------
+1) В build.gradle.kts добавил зависисмости
+    // Добавленные зависимости для отправки email
+    implementation(libs.javax.mail)
+    implementation(libs.javax.activation)
+2) WebSocketClient:
+    в функцию fun register(...) ВРЕМЕННО добавил посылку письма (см. sendEmail) 
+3) В libs.versions.toml добавил строки для отправки email:
+
+javaxMail = "1.6.2"
+javaxActivation = "1.2.0"
+
+и
+
+javax-mail = { module = "com.sun.mail:javax.mail", version.ref = "javaxMail" }
+javax-activation = { module = "com.sun.activation:javax.activation", version.ref = "javaxActivation" }
+ 
+ Комментарии для корректной настройки отправки писем:
+ ---------------------------------------------------
+ 1) Пришлось добавить новую яндекс-почту с именем quiz-smi@yandex.ru и паролем  приложения (система его создает сама)
+    Чтобы создать пароль приложения: Настройки аккаунта->Все настройки->Безопасность->Пароли приложений->Создать пароль приложения->Почта((IMAP, POP3, SMTP) 
+    Войти Настройки аккаунта->Все настройки->Почтовые программы и выставить чек-бокс: 
+		                    с сервера imap.yandex.ru по протоколу IMAP
+		
+		

@@ -3,8 +3,10 @@ package ru.smi_alexey.clients
 import io.ktor.server.websocket.DefaultWebSocketServerSession
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import ru.smi_alexey.db.dao.Gamer
 import ru.smi_alexey.db.dao.GamerDao
+import ru.smi_alexey.email.sendEmail
 import ru.smi_alexey.log.log
 import ru.smi_alexey.serialization.WebSocketMessage
 import ru.smi_alexey.serialization.json
@@ -45,8 +47,22 @@ class WebSocketClient(
 
         if (b) {
             log.info("Клиент id = $id зарегистрирован под логином: '$login'")
-            return true
-        }
+            // Отправляем приветственное письмо
+            if (email != null && email.isNotBlank()) {
+                val subject = "Добро пожаловать в QuizServer!"
+                val htmlContent = """
+                <h1>Здравствуйте, $login!</h1>
+                <p>Спасибо за регистрацию в нашем игровом сервере.</p>
+                <p>Вы успешно создали аккаунт. Теперь можете авторизоваться и играть.</p>
+                <hr>
+                <small>Это автоматическое письмо, отвечать на него не нужно.</small>
+            """.trimIndent()
+                // Отправляем в фоне, не блокируя основной поток
+                kotlinx.coroutines.GlobalScope.launch {
+                    sendEmail(email, subject, htmlContent)
+                }
+            }
+            return true        }
 
         return false
     }

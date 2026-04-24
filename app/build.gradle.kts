@@ -18,9 +18,14 @@ dependencies {
     implementation(libs.bundles.database)
 
     // Логирование через Logback
-    implementation(libs.slf4j.api)      // Добавляем явно
+    implementation(libs.slf4j.api)
     implementation(libs.logback.classic)
     implementation(libs.flyway.core)
+
+    // Добавленные зависимости для отправки email
+    implementation(libs.javax.mail)
+    implementation(libs.javax.activation)
+
     // Тестовые зависимости
     testImplementation(kotlin("test"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
