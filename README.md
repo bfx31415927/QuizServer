@@ -372,4 +372,8 @@ javax-activation = { module = "com.sun.activation:javax.activation", version.ref
     Войти Настройки аккаунта->Все настройки->Почтовые программы и выставить чек-бокс: 
 		                    с сервера imap.yandex.ru по протоколу IMAP
 		
+25.04.2026 (23:24)
+------------------
+Добавил еще одну таблицу restore_passwords и индекс для нее в файл V1__First_migration.sql
+
 		
