@@ -9,7 +9,6 @@ import ru.smi_alexey.clients.WebSocketClientManager
 import ru.smi_alexey.log.log
 import ru.smi_alexey.serialization.*
 
-
 // Обработка авторизации
 suspend fun handleAuthMessage(
     session: DefaultWebSocketServerSession,
@@ -31,6 +30,25 @@ suspend fun handleAuthMessage(
     }
 }
 
+// Обработка сообщения для посылки email
+suspend fun handleEmailMessage(
+    session: DefaultWebSocketServerSession,
+    message: EmailMessage,
+    client: WebSocketClient
+) {
+    WebSocketClientManager.sendEmailToClient(client.id, message.login, message.email)
+}
+
+// Обработка сообщения для посылки email
+suspend fun handleChangePasswordMessage(
+    session: DefaultWebSocketServerSession,
+    message: ChangePasswordMessage,
+    client: WebSocketClient
+) {
+    WebSocketClientManager.changePassword(
+        client.id, message.login, message.password, message.code)
+}
+
 // Обработка прямого экземпляра sealed-класса
 suspend fun handleWebSocketMessage(
     session: DefaultWebSocketServerSession,
@@ -42,6 +60,16 @@ suspend fun handleWebSocketMessage(
         is AuthMessage -> {
             log.info("[handleWebSocketMessage] BEFORE handleAuthMessage")
             handleAuthMessage(session, message, client)
+        }
+
+        is EmailMessage -> {
+            log.info("[handleWebSocketMessage] BEFORE handleAuthMessage")
+            handleEmailMessage(session, message, client)
+        }
+
+        is ChangePasswordMessage -> {
+            log.info("[handleWebSocketMessage] BEFORE handleAuthMessage")
+            handleChangePasswordMessage(session, message, client)
         }
 
         is TextMessage -> {
@@ -67,6 +95,10 @@ suspend fun handleWebSocketMessage(
         }
 
         is ServerResponse -> {
+            //сюда попасть не должны
+        }
+
+        is ServerResponseWithDetails -> {
             //сюда попасть не должны
         }
     }

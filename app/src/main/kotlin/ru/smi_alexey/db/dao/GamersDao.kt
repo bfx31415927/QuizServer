@@ -3,6 +3,7 @@ package ru.smi_alexey.db.dao
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.deleteWhere
@@ -38,6 +39,18 @@ data class Gamer(
     val login: String,
     val password: String,
     val email: String?,
+    val createdAt: Instant
+)
+
+object Restore_passwords : Table() {
+    val login = text("login")
+    val code = integer("code")
+    val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp())
+}
+
+data class Restore_password(
+    val login: String,
+    val code: Int,
     val createdAt: Instant
 )
 
@@ -188,6 +201,55 @@ object GamerDao {
                 }
             }
             count
+        }
+    }
+
+    //добавление или модификация строки в таблице restore_passwords
+    fun addRowtoRP(login: String, code: Int): Boolean{
+        return transaction {
+            // Проверяем, существует ли пользователь с таким login в таблице gamers
+            val b1 = Gamers.select {Gamers.login eq login}.firstOrNull()
+
+            if (b1 == null) {
+                log.warn("[GamerDao.addRowToRP()] Пользователь с логином: '$login'" +
+                        " отсутствует в таблице gamers! ")
+                return@transaction false
+            }
+
+            // Проверяем, существует ли пользователь с таким login в таблице restore_passwords
+            val b2 = Restore_passwords.select {Restore_passwords.login eq login}.firstOrNull()
+            if (b2 != null) {
+                log.warn("[GamerDao.addRowToRP()] Пользователь с логином: '$login'" +
+                        " есть в таблице 'restore_passwords'! ")
+                //удалим его из таблицы Restore_passwords
+                Restore_passwords.deleteWhere { Restore_passwords.login eq login }
+            }
+
+            Restore_passwords.insert {
+                it[Restore_passwords.login] = login
+                it[Restore_passwords.code] = code
+                // createdAt передастся по времени БД
+            }
+
+            return@transaction true
+        }
+    }
+
+    //Замена пароля игроку
+    fun changePassword(login: String, newPassword: String, code: Int): Boolean {
+        return transaction {
+            val row = Restore_passwords.select { Restore_passwords.login eq login }.firstOrNull()
+            if (row != null && row[Restore_passwords.code] == code) {
+                // Проверка времени (например, 3 часа = 10800000 мс)
+                val elapsed = System.currentTimeMillis() - row[Restore_passwords.createdAt].toEpochMilli()
+                if (elapsed <= 3 * 60 * 60 * 1000L) {
+                    GamerDao.updatePassword(login, newPassword)
+                    // Удаляем запись восстановления
+                    Restore_passwords.deleteWhere { Restore_passwords.login eq login }
+                    return@transaction true
+                }
+            }
+            return@transaction false
         }
     }
 }

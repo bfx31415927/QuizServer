@@ -376,4 +376,11 @@ javax-activation = { module = "com.sun.activation:javax.activation", version.ref
 ------------------
 Добавил еще одну таблицу restore_passwords и индекс для нее в файл V1__First_migration.sql
 
-		
+28.04.2026 (18:48) (синхронно с изменениями клиента от 28.04.2026 (18:38))
+---------------------		
+1)Доделал реализацию восстановления пароля, а именно:
+1.1) Убрал лишнее из WebSocketClient
+1.2) В WebSocketClientManager.kt добавил функции sendEmailToClient и changePassword
+1.3) Добавил необходимое в GamersDao
+1.4) Поменял одну строку в файле EmailSender.kt
+1.5) Подредактировал messages.kt и serialization.kt 

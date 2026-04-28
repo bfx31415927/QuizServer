@@ -2,12 +2,21 @@ package ru.smi_alexey.clients
 
 import io.ktor.server.websocket.DefaultWebSocketServerSession
 import io.ktor.websocket.close
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ru.smi_alexey.clients.WebSocketClientManager.gamerIdToClientId
+import ru.smi_alexey.db.dao.GamerDao
+import ru.smi_alexey.email.sendEmail
 import ru.smi_alexey.log.log
 import ru.smi_alexey.serialization.ServerResponse
+import ru.smi_alexey.serialization.ServerResponseWithDetails
 import ru.smi_alexey.serialization.WebSocketMessage
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.collections.get
+import kotlin.random.Random
 
 //import kotlin.concurrent.atomics.AtomicLong
 
@@ -88,7 +97,7 @@ object WebSocketClientManager {
      * Регистрация нового пользователя
      */
     suspend fun registerClient(clientId: Long, login: String, password: String, email: String) {
-        val client = clients[clientId]
+        val client = clients[clientId] ?: return
 
         val success = client?.register(login, password, email)
 
@@ -99,6 +108,71 @@ object WebSocketClientManager {
             log.error("[registerClient] Игрок c логином: '$login' уже есть в БД!")
         }
         client.sendMessage(ServerResponse(success=success, message="register"))
+    }
+
+    /**
+     * Посылка email пользователю, забывшему пароль
+     */
+    suspend fun sendEmailToClient(clientId: Long, login: String, email: String) {
+        val client = clients[clientId] ?: return
+
+        val code = Random.nextInt(1, 2147483647)
+        val success = GamerDao.addRowtoRP(login, code)
+
+        if (success) {
+            log.info("[sendEmailToClient] Для клиента c логином: '$login' " +
+                    "успешно добавлена строка в 'restore_passwords'")
+                //Готовим данные для email и затем отправляем его
+            val subject = "Сброс пароля!"
+            val htmlContent = """
+                <h1>Сброс пароля</h1>
+                Уважаемый(ая) $login!
+                <p>Мы получили запрос на смену пароля.</p>
+                <p>Для продолжения необходимо данный код:</p> 
+                <p><h1>${code}</h1></p>
+                ввести в диалоге [Восстановление пароля (Второй этап)].</p>
+                <p>Диалог нужно вызвать из меню "Восстановление пароля"
+                экрана авторизации программы QuizGamer,
+                нажав на три точки в правом верхнем углу экрана.</p>
+                <p>Код будет действителен в течение трёх часов.</p>
+                <p>Если Вы не отправляли такой запрос,
+                проигнорируйте это письмо.</p>
+            """.trimIndent()
+
+            // НЕ ждём результат, отправляем в фоне
+            CoroutineScope(Dispatchers.IO).launch {
+                sendEmail(email, subject, htmlContent)
+                log.error("[sendEmailToClient] Письмо отправлено клиенту: '$login'")
+            }
+        } else {
+            log.error("[sendEmailToClient] Логин: '$login' отсутствует в БД!")
+        }
+
+        client.sendMessage(ServerResponseWithDetails(success = success,
+            details = "", message = "email"))
+
+        //toDo: Пока непонятно, как поступать с ошибкой отправки email
+    }
+        /**
+         * Замена пароля
+         */
+        suspend fun changePassword(clientId: Long, login: String, password: String, code: String) {
+            val client = clients[clientId] ?: return
+
+            val success = GamerDao.changePassword(login, password, code.toInt())
+
+            if (success) {
+                log.info("[changePassword] Для клиента c логином: '$login' " +
+                        "пароль успешно изменён!")
+            } else {
+                log.error("[changePassword] Для клиента c логином: '$login' " +
+                        "пароль не был изменён по одной из известных причин!")
+            }
+
+        client.sendMessage(ServerResponseWithDetails(success = success,
+            details = "", message = "change_password"))
+
+        //toDo: Пока непонятно, как поступать с ошибкой отправки email
     }
 
     /**

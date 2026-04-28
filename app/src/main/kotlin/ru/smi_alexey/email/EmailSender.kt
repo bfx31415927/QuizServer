@@ -42,7 +42,7 @@ fun sendEmail(
 
     return try {
         val message = MimeMessage(session)
-        message.setFrom(InternetAddress(username, "QuizServer"))
+        message.setFrom(InternetAddress(username, "Игра 'Quiz'"))
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail))
         message.subject = subject
 

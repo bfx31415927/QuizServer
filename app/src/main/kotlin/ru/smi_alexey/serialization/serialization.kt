@@ -23,6 +23,21 @@ data class AuthMessage(
 ) : WebSocketMessage()
 
 @Serializable
+data class EmailMessage(
+    override val _type: String = "email",
+    val login: String,
+    val email: String
+) : WebSocketMessage()
+
+@Serializable
+data class ChangePasswordMessage(
+    override val _type: String = "change_password",
+    val login: String,
+    val password: String,
+    val code: String
+) : WebSocketMessage()
+
+@Serializable
 data class TextMessage(
     override val _type: String = "text",
     val content: String,
@@ -50,6 +65,15 @@ data class StatusUpdate(
 data class ServerResponse(
     override val _type: String = "server_response",
     val success: Boolean,
+    val message: String,
+    val processedAt: Long = System.currentTimeMillis()
+) : WebSocketMessage()
+
+@Serializable
+data class ServerResponseWithDetails(
+    override val _type: String = "server_response_with_details",
+    val success: Boolean,
+    val details: String,
     val message: String,
     val processedAt: Long = System.currentTimeMillis()
 ) : WebSocketMessage()

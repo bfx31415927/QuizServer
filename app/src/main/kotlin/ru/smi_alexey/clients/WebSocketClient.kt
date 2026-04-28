@@ -44,26 +44,10 @@ class WebSocketClient(
 
     fun register(login: String, password: String, email: String): Boolean {
         val b = GamerDao.addGamer(login, password, email)
-
         if (b) {
             log.info("Клиент id = $id зарегистрирован под логином: '$login'")
-            // Отправляем приветственное письмо
-            if (email != null && email.isNotBlank()) {
-                val subject = "Добро пожаловать в QuizServer!"
-                val htmlContent = """
-                <h1>Здравствуйте, $login!</h1>
-                <p>Спасибо за регистрацию в нашем игровом сервере.</p>
-                <p>Вы успешно создали аккаунт. Теперь можете авторизоваться и играть.</p>
-                <hr>
-                <small>Это автоматическое письмо, отвечать на него не нужно.</small>
-            """.trimIndent()
-                // Отправляем в фоне, не блокируя основной поток
-                kotlinx.coroutines.GlobalScope.launch {
-                    sendEmail(email, subject, htmlContent)
-                }
-            }
-            return true        }
-
+            return true
+        }
         return false
     }
 
